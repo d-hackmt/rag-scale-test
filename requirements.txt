@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+google-cloud-storage
+google-cloud-aiplatform
+faiss-cpu
+numpy
+python-dotenv
+pypdf
+streamlit 
+requests
