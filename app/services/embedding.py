@@ -1,7 +1,7 @@
 from vertexai.language_models import TextEmbeddingModel
 
 model = None
-BATCH_SIZE = 200  # safe limit
+BATCH_SIZE = 50  # Reduced from 200 to stay within 20,000 token limit per request
 
 def get_embedding_model():
     global model

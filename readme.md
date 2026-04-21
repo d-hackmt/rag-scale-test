@@ -16,5 +16,12 @@ gcloud run deploy rag-api \
 
 
 ```
+gcloud auth application-default login
+
+```
+
+
+
+```
  gcloud run deploy rag-api   --source .   --region us-central1   --timeout=300   --allow-unauthenticated
 ```

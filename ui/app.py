@@ -2,7 +2,8 @@ import streamlit as st
 import requests
 
 # 🔹 Your deployed API
-API_URL = "https://rag-api-173472321372.us-central1.run.app/query"
+# API_URL = "http://127.0.0.1:8000/query"  # local
+API_URL = "https://rag-api-173472321372.us-central1.run.app/query"  # deployed
 
 
 st.set_page_config(page_title="RAG Chat", layout="wide")
