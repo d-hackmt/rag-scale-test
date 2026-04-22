@@ -14,7 +14,8 @@ Based on the goal architecture, here is how we translate the AWS components to t
 | **Cache** | Redis | **Cloud Memorystore** | Managed Redis with high availability. |
 | **DB** | Aurora Postgres | **Cloud SQL (Postgres)** | Fully managed relational database. |
 | **Model Serving** | Ray + vLLM | **GKE or Vertex AI Model Garden** | Scalable serving for large language models. |
-| **Monitoring** | Grafana | **Cloud Monitoring + Grafana (GKE)** | Deep integration with GCP metrics. |
+| **Re-ranker** | N/A | **Vertex AI Ranking API** | Production-grade semantic re-ranking for higher precision. |
+| **Monitoring** | Grafana | **Cloud Monitoring + Logfire** | Deep integration with GCP and Pydantic AI. |
 
 ## Target Architecture Diagram
 ```mermaid
@@ -25,8 +26,7 @@ graph TD
     
     subgraph "Knowledge Retrieval"
         Agent -->|Vector Search| Qdrant[(Qdrant DB)]
-        Agent -->|Graph Search| Neo4j[(Neo4j DB)]
-        Agent -->|SQL Search| CloudSQL[(Cloud SQL)]
+        Agent -->|Semantic Rerank| Ranker[Vertex AI Ranking API]
     end
     
     subgraph "Execution"
@@ -34,5 +34,5 @@ graph TD
         Agent -->|Cache| Redis[(Memorystore)]
     end
     
-    Agent -->|Tracing| Monitoring[Cloud Monitoring / LangSmith]
+    Agent -->|Tracing| Monitoring[Cloud Monitoring / Logfire]
 ```
