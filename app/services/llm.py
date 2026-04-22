@@ -25,4 +25,4 @@ def generate_answer(query, context):
     """
 
     response = model.generate_content(prompt)
-    return response.text
+    return response.output
