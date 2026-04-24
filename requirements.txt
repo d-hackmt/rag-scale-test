@@ -1,30 +1,46 @@
+# --- CORE API & UI ---
 fastapi
 uvicorn[standard]
+python-dotenv
+requests
+streamlit
+numpy
+pytz
+nest-asyncio
+
+# --- GOOGLE CLOUD PLATFORM ---
 google-cloud-storage
 google-cloud-aiplatform
 google-cloud-discoveryengine
+google-cloud-documentai
+cloud-sql-python-connector
 
-faiss-cpu
-numpy
-python-dotenv
-pypdf
-streamlit 
-requests
+# --- VECTOR & PERSISTENCE ---
 qdrant-client
-
-pydantic-ai
-python-telegram-bot[job-queue]
-tweepy
-loguru
-pytz
-jinja2
-nest-asyncio
-logfire
-logfire[fastapi]
-langchain-community 
-pydantic-ai-slim[tavily]
-pydantic-ai-slim[groq]
 redis
 sqlalchemy
 pg8000
-cloud-sql-python-connector
+
+# --- LANGCHAIN & ORCHESTRATION ---
+langchain
+langgraph
+langchain-google-vertexai
+langchain-groq
+langchain-community
+langchain-openai
+pydantic>=2.0.0
+
+# --- DATA INGESTION & PARSING ---
+unstructured[pdf]
+python-pptx
+python-docx
+beautifulsoup4
+
+# --- OBSERVABILITY & TRACING ---
+langsmith
+logfire
+logfire[fastapi]
+loguru
+
+
+unstructured_inference
