@@ -1,93 +1,95 @@
 import streamlit as st
 import requests
 import time
+import uuid
+import logfire
 
-# 🔹 Configuration
-API_URL = "https://rag-api-173472321372.us-central1.run.app/query"
+# --- LOGFIRE CONFIGURATION ---
+# This ensures that frontend and backend traces correlate in the same project
+logfire.configure()
 
+# --- PAGE CONFIG ---
 st.set_page_config(
-    page_title="Enterprise RAG",
+    page_title="Enterprise Agentic RAG",
     page_icon="🤖",
-    layout="centered", # Centered layout feels more premium and focused
+    layout="wide",
 )
 
-# Sidebar for System Status
-with st.sidebar:
-    st.title("🤖 System Status")
-    st.success("API: Online")
-    st.divider()
-    st.markdown("**Infrastructure**")
-    st.info("LLM: Groq Llama 3.3\n\nVector: Qdrant\n\nRanker: Vertex AI")
-    st.divider()
-    st.caption("Enterprise Agentic RAG v2.0")
+# --- AVATARS ---
+AI_AVATAR = "🤖"
+USER_AVATAR = "👤"
 
-st.title("Enterprise Agentic RAG")
-st.caption("High-performance vector search with semantic re-ranking")
+# --- SESSION MANAGEMENT ---
+if "session_id" not in st.session_state:
+    st.session_state.session_id = str(uuid.uuid4())
+    logfire.info(f"✨ New User Session Created: {st.session_state.session_id}")
 
-# Use a clean container for the chat interaction
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat history
+# --- SIDEBAR ---
+with st.sidebar:
+    st.title("🧠 Agent OS")
+    st.markdown("---")
+    st.success("Logfire: Connected & Tracing")
+    st.info(f"Memory ID: {st.session_state.session_id[:8]}")
+    
+    if st.button("🗑️ Clear History & Memory", width="stretch", type="primary"):
+        logfire.warn(f"🗑️ Memory Wipe Triggered for session: {st.session_state.session_id}")
+        st.session_state.messages = []
+        st.session_state.session_id = str(uuid.uuid4())
+        st.rerun()
+
+# --- MAIN CHAT ---
+st.title("🤖 Enterprise Agentic Assistant")
+
+# Display history
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
+    avatar = AI_AVATAR if message["role"] == "assistant" else USER_AVATAR
+    with st.chat_message(message["role"], avatar=avatar):
         st.markdown(message["content"])
-        if "data" in message:
-            with st.expander("🔍 Context & Sources"):
-                st.write(message["data"].get("answer")) # Fallback
-                st.json(message["data"])
 
 # Chat Input
-if prompt := st.chat_input("Ask me anything about the documents..."):
-    # Display user message
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+if prompt := st.chat_input("Ask about your documentation..."):
+    # START TRACE: User Interaction
+    with logfire.span("💬 User Chat Interaction", user_query=prompt, session_id=st.session_state.session_id):
+        
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user", avatar=USER_AVATAR):
+            st.markdown(prompt)
 
-    # Display assistant response
-    with st.chat_message("assistant"):
-        # Use st.status for a very clean "Agent is working" look
-        with st.status("Agent Orchestration...", expanded=True) as status:
-            st.write("Searching Qdrant Vector Store...")
-            start_time = time.time()
-            
-            try:
-                response = requests.get(API_URL, params={"q": prompt}, timeout=60)
-                if response.status_code == 200:
-                    data = response.json()
-                    st.write("Performing Semantic Re-ranking...")
-                    st.write("Finalizing Reasoning...")
-                    status.update(label=f"Completed in {time.time()-start_time:.1f}s", state="complete", expanded=False)
+        # Assistant Response
+        with st.chat_message("assistant", avatar=AI_AVATAR):
+            with st.status("🔍 Agent is thinking...", expanded=True) as status:
+                try:
+                    # DISTRIBUTED TRACE: Calling Backend
+                    with logfire.span("📡 Calling RAG Backend"):
+                        url = f"http://localhost:8000/query?q={prompt}&thread_id={st.session_state.session_id}"
+                        response = requests.get(url, timeout=60)
+                        data = response.json()
                     
-                    # Main Answer
-                    st.markdown(data.get("answer"))
+                    # Show Reasoning Steps from Backend
+                    steps = data.get("thought_process", [])
+                    for step in steps:
+                        st.write(f"⚙️ {step}")
                     
-                    # Reasoning Section
-                    if data.get("reasoning"):
-                        with st.expander("🤔 Agent Reasoning"):
-                            st.info(data.get("reasoning"))
-                    
-                    # Sources Section
-                    if data.get("sources"):
-                        with st.expander("🔗 Technical Sources"):
-                            for src in data.get("sources"):
-                                st.markdown(f"- {src}")
-                    
-                    # Tool History
-                    if data.get("tool_history"):
-                        with st.expander("🛠 Tool Execution Log"):
-                            st.table(data.get("tool_history"))
+                    status.update(label="✅ Answer Synthesized", state="complete", expanded=False)
+                except Exception as e:
+                    logfire.error(f"❌ UI-Backend Connection Failed: {e}")
+                    status.update(label="❌ Connection Failed", state="error")
+                    st.error("Backend Offline.")
+                    st.stop()
 
-                    # Save to history
-                    st.session_state.messages.append({
-                        "role": "assistant", 
-                        "content": data.get("answer"),
-                        "data": data
-                    })
-                else:
-                    status.update(label="API Error", state="error")
-                    st.error(f"Error {response.status_code}: {response.text}")
+            # Final Answer Streaming
+            answer_placeholder = st.empty()
+            full_answer = data.get("answer", "No response.")
             
-            except Exception as e:
-                status.update(label="Connection Failed", state="error")
-                st.error(f"Failed to connect to backend: {e}")
+            curr_text = ""
+            for char in full_answer:
+                curr_text += char
+                answer_placeholder.markdown(curr_text + "▌")
+                time.sleep(0.005)
+            
+            answer_placeholder.markdown(full_answer)
+            st.session_state.messages.append({"role": "assistant", "content": full_answer})
+            logfire.info("✅ Chat cycle completed successfully.")
