@@ -1,24 +1,13 @@
-__pycache__
-*.pyc
-*.pyo
-*.pyd
+__pycache__/
+*.py[cod]
+*$py.class
 .env
-.cache
-.local
-.git
+.venv
+venv/
+genv/
+.git/
 .gitignore
-*.log
-
-
-commands to run.md
-
-
-commands to run.md
-
-
-Building a Scalable, Production-Grade Agentic RAG Pipeline _ by Fareed Khan _ Level Up Coding.pdf
-
-
-SCALABLEE RAG reference co
-
+DATA/
+DOCS/
 .logfire
+tests/

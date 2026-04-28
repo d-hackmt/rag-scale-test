@@ -17,13 +17,15 @@ cloud-sql-python-connector
 
 # --- VECTOR & PERSISTENCE ---
 qdrant-client
-redis
 sqlalchemy
 pg8000
+psycopg[binary]
+psycopg-pool
 
 # --- LANGCHAIN & ORCHESTRATION ---
 langchain
 langgraph
+langgraph-checkpoint-postgres
 langchain-google-vertexai
 langchain-groq
 langchain-community

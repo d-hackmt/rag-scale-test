@@ -26,10 +26,13 @@ class Settings:
     DB_PASS = os.getenv("DB_PASS")
     DB_NAME = os.getenv("DB_NAME", "postgres")
     DB_CONNECTION_NAME = os.getenv("DB_CONNECTION_NAME")
+    DB_HOST = os.getenv("DB_HOST", "localhost")
+    DB_PORT = os.getenv("DB_PORT", "5432")
 
-    # --- CACHE (REDIS) ---
-    REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
-    REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+    @property
+    def DATABASE_URL(self):
+        # Local Postgres string. This will be updated for Cloud Run in Phase 3.
+        return f"postgresql://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     # --- OBSERVABILITY ---
     LANGSMITH_TRACING = os.getenv("LANGCHAIN_TRACING_V2", "true")
