@@ -15,15 +15,16 @@ from app.services.core.config import settings
 logfire.configure()
 
 def get_connection():
-    """Official Cloud SQL Connector for 100% reliable production connection."""
+    """Official Cloud SQL Connector using the psycopg driver."""
     connector = Connector()
+    # Using 'psycopg' instead of 'pg8000' to match the pool's expectations
     conn = connector.connect(
         settings.DB_CONNECTION_NAME,
-        "pg8000",
+        "psycopg", 
         user=settings.DB_USER,
         password=settings.DB_PASS,
         db=settings.DB_NAME,
-        ip_type=IPTypes.PUBLIC # Cloud Run can reach Public IP via Proxy
+        ip_type=IPTypes.PUBLIC
     )
     return conn
 
@@ -39,8 +40,9 @@ workflow.add_edge("responder", END)
 
 # --- MEMORY: Postgres (Cloud Ready) ---
 try:
-    if settings.DB_CONNECTION_NAME and "localhost" not in settings.DB_HOST:
-        # Use a Lazy Pool with the Connector
+    # Only use Postgres if we have a connection name and we aren't local
+    if settings.DB_CONNECTION_NAME and settings.DB_PASS:
+        # High-performance connection pool
         pool = ConnectionPool(
             conninfo="",
             getconn=get_connection,
@@ -48,9 +50,9 @@ try:
             kwargs={"autocommit": True}
         )
         checkpointer = PostgresSaver(pool)
-        logfire.info("📡 Cloud SQL Connector Active")
+        logfire.info("📡 Cloud SQL (psycopg) Connection Pool Active")
     else:
-        # Local Fallback
+        # Standard local fallback
         pool = ConnectionPool(conninfo=settings.DATABASE_URL, max_size=5, kwargs={"autocommit": True})
         checkpointer = PostgresSaver(pool)
         logfire.info("🏠 Local Postgres Active")
