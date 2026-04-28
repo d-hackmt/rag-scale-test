@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # --- 🐘 DATABASE (Local Memory) ---
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: rag_memory
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d rag_memory"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --- 🧠 AGENT BACKEND ---
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_USER=user
+      - DB_PASS=password
+      - DB_NAME=rag_memory
+      - DB_HOST=db
+      - DB_PORT=5432
+      # Add your API keys here for local testing
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - QDRANT_CLUSTER_ENDPOINT=${QDRANT_CLUSTER_ENDPOINT}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+      - PROJECT_ID=${PROJECT_ID}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # --- 🤖 USER INTERFACE ---
+  ui:
+    build:
+      context: .
+      dockerfile: docker/ui.Dockerfile
+    ports:
+      - "8501:8501"
+    environment:
+      - BACKEND_URL=http://backend:8080
+    depends_on:
+      - backend
