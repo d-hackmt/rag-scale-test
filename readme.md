@@ -1,74 +1,93 @@
-# 🤖 Enterprise Agentic RAG (Scalable Pipeline)
+# 🚀 Enterprise Agentic RAG: Microservices Edition
 
-A production-grade, cyclic RAG system built with **LangGraph**, **GCP**, and **Groq**. This system distinguishes between technical "True Data" and random "Noisy Data" using semantic re-ranking and history-aware planning.
+An enterprise-grade, event-driven RAG system built on **Google Cloud Platform (GCP)**. This system leverages **LangGraph** for reasoning, **Postgres** for persistent agent memory, and **Eventarc** for automated data ingestion.
 
-## 🔄 Agent Intelligence Flow
+---
+
+## 🏛️ System Architecture
+
+This project has evolved from a local prototype into a decoupled, scalable microservices architecture.
+
 ```mermaid
 graph TD
-    User((User)) --> UI[Streamlit UI]
-    UI --> Planner{Planner Node}
-    Planner -->|Conversational| Responder[Responder Node]
-    Planner -->|Technical| Retriever[Retriever Node]
-    Retriever --> Reranker[Vertex AI Reranker]
-    Reranker --> Responder
-    Responder --> UI
-    Responder -.-> Memory[(Memory Saver)]
-```
+    subgraph "External Cloud"
+        Q(Qdrant Cloud)
+        G(Groq Llama 3.3)
+    end
 
-## 📂 Project Structure
-```text
-├── app/
-│   ├── agents/          # LangGraph Nodes & State Logic
-│   ├── pipelines/       # 3-Tier Ingestion Engine
-│   ├── services/        # GCP, Qdrant, and Groq Clients
-├── ui/                  # Premium Streamlit Chat Interface
-├── DOCS/                # Standardized Documentation Folders
-│   ├── 01_Architecture/ # System Design
-│   ├── 02_Data_Pipeline/# Ingestion & Storage
-│   ├── 03_Agentic_Brain/# AI Logic & State
-│   ├── 04_Ops_Monitoring/# Logging & GCP
-│   └── 05_Future_Roadmap/# Production Upgrade Notes
-├── utils/               # Common Helper Utilities
-└── requirements.txt     # Dependency Management
-```
+    subgraph "Google Cloud Platform"
+        direction TB
+        
+        subgraph "Storage Layer"
+            RB[(GCS Raw Bucket)]
+            PB[(GCS Processed Bucket)]
+        end
 
-## 📚 Documentation Index
+        subgraph "Microservices (Cloud Run)"
+            UI[Streamlit UI]
+            API[FastAPI Backend]
+            WORKER[Ingestion Worker]
+        end
 
-### 🏗️ 01. Architecture
-- [System Overview](DOCS/01_Architecture/01_SYSTEM_OVERVIEW.md)
+        subgraph "Persistence"
+            DB[(Cloud SQL Postgres)]
+        end
 
-### 📥 02. Data Management
-- [Ingestion Engine](DOCS/02_Data_Pipeline/02_INGESTION_ENGINE.md)
+        subgraph "Event-Driven Logic"
+            EV[Eventarc Trigger]
+        end
+    end
 
-### 🤖 03. Intelligence & Logic
-- [Node Intelligence](DOCS/03_Agentic_Brain/03_NODE_INTELLIGENCE.md)
+    User((User)) --> UI
+    UI --> API
+    API --> Q
+    API --> G
+    API --> DB
 
-### 🕵️ 04. Operations & Monitoring
-- [Tracing & Backend Triggers](DOCS/04_Ops_Monitoring/04_TRACING_AND_GCP.md)
-- [GCP Production Setup](DOCS/04_Ops_Monitoring/02_GCP_PROD_SETUP.md)
-- [Deployment Strategy](DOCS/04_Ops_Monitoring/03_DEPLOYMENT_STRATEGY.md)
-
-### 🚀 05. Future Roadmap
-- [Redis Caching Upgrade](DOCS/05_Future_Roadmap/01_REDIS_CACHING.md)
-- [Postgres Audit Memory](DOCS/05_Future_Roadmap/02_POSTGRES_AUDIT.md)
-
-## 🚀 Quick Start (Local)
-
-### 1. Ingest Data (True & Noisy)
-```bash
-python -m app.pipelines.ingestion.processor "DATA/true_data" "true" --wipe
-python -m app.pipelines.ingestion.processor "DATA/noisy_data" "noisy"
-```
-
-### 2. Launch Backend
-```bash
-python -m uvicorn app.main:app --reload
-```
-
-### 3. Launch UI
-```bash
-streamlit run ui/app.py
+    RB -- "New File" --> EV
+    EV -- "Trigger" --> WORKER
+    WORKER --> PB
+    WORKER --> Q
 ```
 
 ---
-*Built with ❤️ for Scalable AI Engineering.*
+
+## 🏗️ Core Components
+
+1.  **Conversational UI**: A premium Streamlit interface for human-agent interaction.
+2.  **Agentic Brain**: A FastAPI-based LangGraph engine that plans, retrieves, and synthesizes.
+3.  **Persistence Layer**: Managed Cloud SQL (Postgres) ensuring the agent never forgets a conversation.
+4.  **Auto-Ingestion Pipeline**: An event-driven worker that automatically "learns" from new files uploaded to GCS.
+5.  **Infrastructure as Code**: The entire environment is managed and provisioned via **Terraform**.
+
+---
+
+## 📂 Project Documentation
+
+Detailed guides for every layer of the system:
+
+*   [**Microservices Architecture**](DOCS/MICROSERVICES.md) - Deep dive into the 3-tier split.
+*   [**Cloud Infrastructure**](DOCS/CLOUD_INFRA.md) - How Terraform and Eventarc power the system.
+*   [**Agent Reasoning**](DOCS/AGENTS.md) - The LangGraph logic and decision nodes.
+*   [**Data Strategy**](DOCS/DATA_STRATEGY.md) - Raw, Processed, and Vector storage layers.
+*   [**GCP Operations**](DOCS/GCP_OPS.md) - Deployment, Logging, and Monitoring.
+
+---
+
+## 🛠️ Quick Start
+
+### 1. Build the Images
+```bash
+gcloud builds submit --config cloudbuild.yaml .
+```
+
+### 2. Provision Infrastructure
+```bash
+cd terraform
+terraform init
+terraform apply
+```
+
+---
+
+*Built with ❤️ for High-Scale Enterprise RAG.*
