@@ -54,3 +54,11 @@ SCALABLEE RAG reference co
 
 
 .logfire
+
+# --- TERRAFORM ---
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.tfvars.json
+.terraform.lock.hcl
