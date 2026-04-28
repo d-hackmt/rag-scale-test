@@ -24,41 +24,29 @@ wheels/
 .installed.cfg
 *.egg
 
-# Environment variables
+# Secrets & Config
 .env
+*.tfvars
+*.tfvars.json
 
-# Local Vector Store
-index.faiss
-metadata.pkl
-
-# Data
-
-
-# IDEs
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db
-
-genv
-
-commands to run.md
-
-
-Building a Scalable, Production-Grade Agentic RAG Pipeline _ by Fareed Khan _ Level Up Coding.pdf
-
-
-SCALABLEE RAG reference co
-
-
-.logfire
-
-# --- TERRAFORM ---
+# Terraform State
 .terraform/
 *.tfstate
 *.tfstate.backup
-*.tfvars
-*.tfvars.json
 .terraform.lock.hcl
+
+# IDEs & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs & Observability
+.logfire
+*.log
+
+# Project Specific
+Building a Scalable, Production-Grade Agentic RAG Pipeline _ by Fareed Khan _ Level Up Coding.pdf
+SCALABLEE RAG reference co
+
+

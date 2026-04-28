@@ -11,6 +11,13 @@ resource "google_cloud_run_v2_service" "ingestion" {
     containers {
       image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.app_name}-repo/ingestion:latest"
       
+      resources {
+        limits = {
+          cpu    = "1"
+          memory = "2Gi"
+        }
+      }
+
       env {
         name  = "QDRANT_CLUSTER_ENDPOINT"
         value = var.qdrant_url
@@ -18,6 +25,14 @@ resource "google_cloud_run_v2_service" "ingestion" {
       env {
         name  = "QDRANT_API_KEY"
         value = var.qdrant_api_key
+      }
+      env {
+        name  = "DB_CONNECTION_NAME"
+        value = google_sql_database_instance.postgres.connection_name
+      }
+      env {
+        name  = "PROJECT_ID"
+        value = var.project_id
       }
       env {
         name  = "GCP_RAW_BUCKET"

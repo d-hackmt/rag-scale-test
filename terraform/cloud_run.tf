@@ -10,6 +10,13 @@ resource "google_cloud_run_v2_service" "backend" {
     containers {
       image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.app_name}-repo/backend:latest"
       
+      resources {
+        limits = {
+          cpu    = "1"
+          memory = "2Gi"
+        }
+      }
+
       env {
         name  = "GROQ_API_KEY"
         value = var.groq_api_key
@@ -23,20 +30,25 @@ resource "google_cloud_run_v2_service" "backend" {
         value = var.qdrant_api_key
       }
       env {
+        name  = "DB_CONNECTION_NAME"
+        value = google_sql_database_instance.postgres.connection_name
+      }
+      env {
+        # Fallback for local/socket detection
         name  = "DB_HOST"
-        value = google_sql_database_instance.postgres.public_ip_address
+        value = "/cloudsql/${google_sql_database_instance.postgres.connection_name}"
       }
       env {
         name  = "DB_USER"
-        value = google_sql_user.users.name
+        value = "rag_admin" # From database.tf
       }
       env {
         name  = "DB_PASS"
-        value = google_sql_user.users.password
+        value = var.db_password
       }
       env {
         name  = "DB_NAME"
-        value = google_sql_database.database.name
+        value = "postgres"
       }
     }
   }
@@ -52,6 +64,13 @@ resource "google_cloud_run_v2_service" "ui" {
     containers {
       image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.app_name}-repo/ui:latest"
       
+      resources {
+        limits = {
+          cpu    = "1"
+          memory = "2Gi"
+        }
+      }
+
       env {
         name  = "BACKEND_URL"
         value = google_cloud_run_v2_service.backend.uri
