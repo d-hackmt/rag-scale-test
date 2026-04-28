@@ -13,7 +13,7 @@ google-cloud-storage
 google-cloud-aiplatform
 google-cloud-discoveryengine
 google-cloud-documentai
-cloud-sql-python-connector
+cloud-sql-python-connector[pg8000,asyncpg]
 
 # --- VECTOR & PERSISTENCE ---
 qdrant-client

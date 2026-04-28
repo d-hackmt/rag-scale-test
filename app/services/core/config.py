@@ -25,13 +25,14 @@ class Settings:
     DB_USER = os.getenv("DB_USER", "postgres")
     DB_PASS = os.getenv("DB_PASS")
     DB_NAME = os.getenv("DB_NAME", "postgres")
-    DB_CONNECTION_NAME = os.getenv("DB_CONNECTION_NAME")
+    # Connection Name format: project:region:instance
+    DB_CONNECTION_NAME = os.getenv("DB_CONNECTION_NAME") 
     DB_HOST = os.getenv("DB_HOST", "localhost")
     DB_PORT = os.getenv("DB_PORT", "5432")
 
     @property
     def DATABASE_URL(self):
-        # Local Postgres string. This will be updated for Cloud Run in Phase 3.
+        """Standard TCP URL for local dev or fallback."""
         return f"postgresql://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     # --- OBSERVABILITY ---

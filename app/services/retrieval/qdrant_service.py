@@ -4,18 +4,25 @@ from qdrant_client.http import models
 from app.services.core.config import settings
 from app.services.core.embedding import get_embedding_model, embed_query
 
-# Initialize Qdrant Client
-client = QdrantClient(
-    url=settings.QDRANT_URL,
-    api_key=settings.QDRANT_API_KEY
-)
+# Global client holder
+_client = None
+
+def get_qdrant_client():
+    """Lazy initialization of the Qdrant client."""
+    global _client
+    if _client is None:
+        _client = QdrantClient(
+            url=settings.QDRANT_URL,
+            api_key=settings.QDRANT_API_KEY
+        )
+    return _client
 
 def search_enterprise_knowledge(query: str, limit: int = 5):
     """
     Performs a high-precision search in the enterprise knowledge base.
-    Uses the modern query_points interface.
     """
     try:
+        client = get_qdrant_client()
         query_vector = embed_query(query)
 
         # Using query_points - the modern standard for Qdrant
