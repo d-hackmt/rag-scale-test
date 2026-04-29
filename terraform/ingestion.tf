@@ -8,8 +8,21 @@ resource "google_cloud_run_v2_service" "ingestion" {
 
   template {
     service_account = google_service_account.ingestion_sa.email
+    
+    volumes {
+      name = "cloudsql"
+      cloud_sql_instance {
+        instances = [google_sql_database_instance.postgres.connection_name]
+      }
+    }
+
     containers {
       image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.app_name}-repo/ingestion:latest"
+      
+      volume_mounts {
+        name       = "cloudsql"
+        mount_path = "/cloudsql"
+      }
       
       resources {
         limits = {
@@ -42,6 +55,10 @@ resource "google_cloud_run_v2_service" "ingestion" {
         name  = "GCP_PROCESSED_BUCKET"
         value = google_storage_bucket.processed_data.name
       }
+      env {
+        name  = "LOGFIRE_TOKEN"
+        value = var.logfire_token
+      }
     }
   }
 }
@@ -71,6 +88,8 @@ resource "google_eventarc_trigger" "gcs_trigger" {
   service_account = google_service_account.ingestion_sa.email
 
   depends_on = [
-    google_project_iam_member.ingestion_roles
+    google_project_iam_member.ingestion_roles,
+    google_project_iam_member.gcs_pubsub_publishing,
+    google_project_iam_member.eventarc_service_agent
   ]
 }

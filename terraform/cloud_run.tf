@@ -7,8 +7,27 @@ resource "google_cloud_run_v2_service" "backend" {
   ingress  = "INGRESS_TRAFFIC_ALL"
 
   template {
+    vpc_access {
+      network_interfaces {
+        network = google_compute_network.rag_vpc.name
+      }
+      egress = "PRIVATE_RANGES_ONLY"
+    }
+
+    volumes {
+      name = "cloudsql"
+      cloud_sql_instance {
+        instances = [google_sql_database_instance.postgres.connection_name]
+      }
+    }
+
     containers {
       image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.app_name}-repo/backend:latest"
+      
+      volume_mounts {
+        name       = "cloudsql"
+        mount_path = "/cloudsql"
+      }
       
       resources {
         limits = {
@@ -34,13 +53,8 @@ resource "google_cloud_run_v2_service" "backend" {
         value = google_sql_database_instance.postgres.connection_name
       }
       env {
-        # Fallback for local/socket detection
-        name  = "DB_HOST"
-        value = "/cloudsql/${google_sql_database_instance.postgres.connection_name}"
-      }
-      env {
         name  = "DB_USER"
-        value = "rag_admin" # From database.tf
+        value = "rag_admin"
       }
       env {
         name  = "DB_PASS"
@@ -49,6 +63,26 @@ resource "google_cloud_run_v2_service" "backend" {
       env {
         name  = "DB_NAME"
         value = "postgres"
+      }
+      env {
+        name  = "DB_HOST"
+        value = "/cloudsql/${google_sql_database_instance.postgres.connection_name}"
+      }
+      env {
+        name  = "REDIS_HOST"
+        value = google_redis_instance.cache.host
+      }
+      env {
+        name  = "REDIS_PORT"
+        value = "6379"
+      }
+      env {
+        name  = "USE_SEMANTIC_CACHE"
+        value = "true"
+      }
+      env {
+        name  = "LOGFIRE_TOKEN"
+        value = var.logfire_token
       }
     }
   }
@@ -64,6 +98,10 @@ resource "google_cloud_run_v2_service" "ui" {
     containers {
       image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.app_name}-repo/ui:latest"
       
+      ports {
+        container_port = 8501
+      }
+
       resources {
         limits = {
           cpu    = "1"
