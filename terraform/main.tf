@@ -90,12 +90,14 @@ resource "google_storage_bucket" "raw_data" {
   name     = "${var.project_id}-rag-raw"
   location = var.region
   uniform_bucket_level_access = true
+  force_destroy = true
 }
 
 resource "google_storage_bucket" "processed_data" {
   name     = "${var.project_id}-rag-processed"
   location = var.region
   uniform_bucket_level_access = true
+  force_destroy = true
 }
 
 # 8. Artifact Registry for Docker Images

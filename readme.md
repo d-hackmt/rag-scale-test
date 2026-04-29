@@ -1,93 +1,103 @@
-# 🚀 Enterprise Agentic RAG: Microservices Edition
+# 🤖 Enterprise Agentic RAG Platform
 
-An enterprise-grade, event-driven RAG system built on **Google Cloud Platform (GCP)**. This system leverages **LangGraph** for reasoning, **Postgres** for persistent agent memory, and **Eventarc** for automated data ingestion.
+Welcome to the **Enterprise Agentic RAG Platform**. This repository contains a production-ready, highly scalable, and fully observable Retrieval-Augmented Generation (RAG) system. 
+
+It has evolved from a simple local script into a robust **Event-Driven Microservices Architecture** deployed entirely on Google Cloud.
 
 ---
 
-## 🏛️ System Architecture
+## 🏗️ Architecture Overview
 
-This project has evolved from a local prototype into a decoupled, scalable microservices architecture.
+The platform is designed using a decoupled microservices approach, allowing each component to scale independently based on demand.
+
+### 1. The Local / Conceptual Flow
+At its core, the RAG system operates on an Agentic framework using LangGraph.
 
 ```mermaid
 graph TD
-    subgraph "External Cloud"
-        Q(Qdrant Cloud)
-        G(Groq Llama 3.3)
-    end
-
-    subgraph "Google Cloud Platform"
-        direction TB
+    User([User]) -->|Question| Planner
+    
+    subgraph "Agentic Core (LangGraph)"
+        Planner[Planner Node<br/><i>Analyzes Intent</i>]
+        Retriever[Retriever Node<br/><i>Searches DB</i>]
+        Responder[Responder Node<br/><i>Synthesizes Answer</i>]
         
-        subgraph "Storage Layer"
-            RB[(GCS Raw Bucket)]
-            PB[(GCS Processed Bucket)]
-        end
-
-        subgraph "Microservices (Cloud Run)"
-            UI[Streamlit UI]
-            API[FastAPI Backend]
-            WORKER[Ingestion Worker]
-        end
-
-        subgraph "Persistence"
-            DB[(Cloud SQL Postgres)]
-        end
-
-        subgraph "Event-Driven Logic"
-            EV[Eventarc Trigger]
-        end
+        Planner -->|Needs Info| Retriever
+        Planner -->|Conversational| Responder
+        Retriever --> Responder
     end
+    
+    subgraph "Data Layer"
+        Redis[(Redis<br/>Semantic Cache)]
+        Postgres[(Postgres<br/>Conversation Memory)]
+        Qdrant[(Qdrant<br/>Vector DB)]
+    end
+    
+    Planner -.->|Check Cache| Redis
+    Retriever -.->|Fetch Context| Qdrant
+    Responder -.->|Save History| Postgres
+    
+    Responder -->|Answer| User
+```
 
-    User((User)) --> UI
-    UI --> API
-    API --> Q
-    API --> G
-    API --> DB
+### 2. The Cloud Infrastructure Flow (GCP)
+In production, the application is split into specialized workers and connected via secure Google Cloud networking.
 
-    RB -- "New File" --> EV
-    EV -- "Trigger" --> WORKER
-    WORKER --> PB
-    WORKER --> Q
+```mermaid
+graph LR
+    User([User]) -->|HTTPS| UI[Streamlit UI<br/>Cloud Run :8501]
+    UI -->|HTTPS| API[Backend API<br/>Cloud Run :8080]
+    
+    Admin([Admin]) -->|Upload PDF| GCS[(Cloud Storage<br/>rag-raw)]
+    
+    subgraph "Event-Driven Ingestion"
+        GCS -->|PubSub Event| Eventarc((Eventarc))
+        Eventarc -->|POST /ingest| Ingest[Ingestion Worker<br/>Cloud Run :8080]
+    end
+    
+    subgraph "Private VPC Network"
+        API --> Redis[(Memorystore)]
+        API --> Postgres[(Cloud SQL)]
+        Ingest --> Postgres
+    end
+    
+    Ingest -.->|Embeddings| Qdrant[(Qdrant Cloud)]
+    API -.->|Search| Qdrant
+    API -.->|LLM| Groq((Groq API))
 ```
 
 ---
 
-## 🏗️ Core Components
+## 📚 Documentation Directory
 
-1.  **Conversational UI**: A premium Streamlit interface for human-agent interaction.
-2.  **Agentic Brain**: A FastAPI-based LangGraph engine that plans, retrieves, and synthesizes.
-3.  **Persistence Layer**: Managed Cloud SQL (Postgres) ensuring the agent never forgets a conversation.
-4.  **Auto-Ingestion Pipeline**: An event-driven worker that automatically "learns" from new files uploaded to GCS.
-5.  **Infrastructure as Code**: The entire environment is managed and provisioned via **Terraform**.
+We have thoroughly documented the system. Please explore the `DOCS/` folder for in-depth guides:
 
----
-
-## 📂 Project Documentation
-
-Detailed guides for every layer of the system:
-
-*   [**Microservices Architecture**](DOCS/MICROSERVICES.md) - Deep dive into the 3-tier split.
-*   [**Cloud Infrastructure**](DOCS/CLOUD_INFRA.md) - How Terraform and Eventarc power the system.
-*   [**Agent Reasoning**](DOCS/AGENTS.md) - The LangGraph logic and decision nodes.
-*   [**Data Strategy**](DOCS/DATA_STRATEGY.md) - Raw, Processed, and Vector storage layers.
-*   [**GCP Operations**](DOCS/GCP_OPS.md) - Deployment, Logging, and Monitoring.
+* **[The Development Journey](DOCS/01_Overview/01_Development_Journey.md)** - How we built this.
+* **[Terminologies](DOCS/01_Overview/02_Terminologies.md)** - Jargon explained in simple words.
+* **[Code Structure](DOCS/01_Overview/03_Code_Structure.md)** - Complete map of the codebase.
+* **[Error History & Debugging](DOCS/04_Operations/01_Error_History_And_Debugging.md)** - The "Battle Scars" and how we fixed every deployment bug.
+*(More architecture and Terraform guides available in the DOCS folder).*
 
 ---
 
-## 🛠️ Quick Start
+## 🚀 Quick Start (Cloud Deployment)
 
-### 1. Build the Images
-```bash
-gcloud builds submit --config cloudbuild.yaml .
-```
+Everything is managed via Infrastructure as Code (Terraform) and CI/CD (Google Cloud Build).
 
-### 2. Provision Infrastructure
-```bash
-cd terraform
-terraform init
-terraform apply
-```
+1. **Build the Microservices:**
+   ```bash
+   gcloud builds submit --config cloudbuild.yaml .
+   ```
+
+2. **Deploy the Infrastructure:**
+   ```bash
+   cd terraform
+   terraform init
+   terraform apply -auto-approve
+   ```
+
+3. **Ingest Data Automatically:**
+   Simply upload a PDF or TXT file to your `[project_id]-rag-raw` Cloud Storage bucket. Eventarc will instantly wake up the ingestion worker and process the file into your Vector Database!
 
 ---
-
-*Built with ❤️ for High-Scale Enterprise RAG.*
+*Built with LangGraph, FastAPI, Streamlit, and Terraform.*

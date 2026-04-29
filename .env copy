@@ -1,0 +1,38 @@
+
+# Qdrant Vector DB Settings 
+QDRANT_API_KEY = 
+QDRANT_CLUSTER_ENDPOINT = 
+
+# Groq Reasoning Engine (Llama 3.3)
+GROQ_API_KEY = 
+
+# Redis Memorystore (Caching & Session Memory)
+REDIS_HOST = 
+REDIS_PORT = "6379"
+
+# Cloud SQL Postgres (Audit Logging & Metadata)
+DB_USER = "postgres"
+DB_PASS = 
+DB_NAME = "postgres"
+DB_CONNECTION_NAME = 
+
+
+# Pydantic Logfire Observability
+LOGFIRE_TOKEN = 
+
+
+# Google Cloud Settings
+PROJECT_ID = 
+LOCATION = 
+GCP_DOC_AI_PROCESSOR_ID = 
+GCP_RAW_BUCKET = 
+GCP_PROCESSED_BUCKET = 
+VPC_CONNECTOR = 
+
+
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_PROJECT=
+LANGCHAIN_ENDPOINT=
+LANGCHAIN_API_KEY = 
+
+

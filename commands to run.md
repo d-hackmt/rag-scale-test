@@ -106,3 +106,52 @@ This guide contains every command needed to manage, build, and deploy your Agent
 
 ---
 *Status: Ready for Production.* 🚀
+
+
+```
+gcloud builds submit --config cloudbuild.yaml .
+
+```
+
+
+```
+cd terraform
+/c/terraform/terraform.exe apply -auto-approve
+
+```
+
+
+CMD for single docker app 
+
+
+```
+
+gcloud run deploy rag-api \
+  --source . \
+  --region us-central1 \
+  --timeout=300 \
+  --allow-unauthenticated \
+  --set-env-vars "PROJECT_ID=dmtxpress,LOCATION=us-central1,BUCKET_NAME=rag-enterprise-bucket,GROQ_API_KEY=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,QDRANT_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIiwic3ViamVjdCI6ImFwaS1rZXk6ODRiM2Y5MTAtMjExZC00MWZmLWJjOWUtMDVlZjEzYWVmZmVjIn0.f0qLRXyvjRRp5aP84Si1V2lh38q7Qy4SpOLtXYC7gDM,QDRANT_CLUSTER_ENDPOINT=https://ea091fa5-4283-45b8-bc40-633cc17426aa.us-east4-0.gcp.cloud.qdrant.io,REDIS_HOST=10.97.147.220,DB_USER=postgres,DB_PASS=Divesh.sql@000,DB_CONNECTION_NAME=dmtxpress:us-central1:rag-enterprise-db,LOGFIRE_TOKEN=pylf_v1_us_6Yz5SjlR2WdVdgvSbrr106FzpDD6nZkHhNjbCmLChzX5"
+
+
+```
+
+Manual data ingestion
+
+```
+python -m app.pipelines.ingestion.processor "DATA/true_data" "true"
+
+
+python -m app.pipelines.ingestion.processor "DATA/true_data" "true"
+
+
+```
+
+with wipe parameter
+
+```
+
+python -m app.pipelines.ingestion.processor "DATA/noisy_data" "noisy" --wipe
+
+
+```
