@@ -3,8 +3,11 @@ from app.agents.graph import rag_agent
 from app.services.core.config import settings
 import logfire
 
-# Initialize Observability
-logfire.configure()
+# Initialize Logfire (Optional/Non-blocking)
+try:
+    logfire.configure()
+except Exception:
+    pass # Prevent crash if token is missing
 
 app = FastAPI(title="Enterprise Agentic RAG")
 # logfire.instrument_fastapi(app) # Disabled due to version conflict
@@ -25,7 +28,7 @@ def get_graph_image():
         return {"error": f"Could not generate graph image: {e}"}
 
 @app.get("/query")
-async def query(q: str, thread_id: str = "default_user"):
+def query(q: str, thread_id: str = "default_user"):
     """
     Executes the LangGraph RAG flow with memory.
     """
@@ -40,8 +43,8 @@ async def query(q: str, thread_id: str = "default_user"):
     # Configuration for Memory (Thread ID)
     config = {"configurable": {"thread_id": thread_id}}
     
-    # Run the graph with config
-    final_output = await rag_agent.ainvoke(initial_state, config=config)
+    # Run the graph with config synchronously
+    final_output = rag_agent.invoke(initial_state, config=config)
     
     return {
         "question": q,
