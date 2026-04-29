@@ -6,8 +6,11 @@ import uuid
 import logfire
 
 # --- LOGFIRE CONFIGURATION ---
-# This ensures that frontend and backend traces correlate in the same project
-logfire.configure()
+try:
+    logfire.configure()
+    LOGFIRE_STATUS = "Connected & Tracing"
+except Exception:
+    LOGFIRE_STATUS = "Standby (No Token)"
 
 # --- PAGE CONFIG ---
 st.set_page_config(
@@ -32,7 +35,7 @@ if "messages" not in st.session_state:
 with st.sidebar:
     st.title("🧠 Agent OS")
     st.markdown("---")
-    st.success("Logfire: Connected & Tracing")
+    st.success(f"Logfire: {LOGFIRE_STATUS}")
     st.info(f"Memory ID: {st.session_state.session_id[:8]}")
     
     if st.button("🗑️ Clear History & Memory", width="stretch", type="primary"):

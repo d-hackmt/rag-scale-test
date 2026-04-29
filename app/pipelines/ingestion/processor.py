@@ -16,7 +16,10 @@ from qdrant_client.http import models
 app = FastAPI()
 
 # Initialize Logfire
-logfire.configure()
+try:
+    logfire.configure()
+except Exception:
+    pass
 
 def get_clients():
     """Lazy initialization of clients to prevent startup crashes."""
