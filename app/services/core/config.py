@@ -17,6 +17,11 @@ class Settings:
     QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
     QDRANT_COLLECTION = "enterprise_rag_v2"
 
+    # --- CACHE (REDIS) ---
+    REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+    USE_SEMANTIC_CACHE = os.getenv("USE_SEMANTIC_CACHE", "true").lower() == "true"
+
     # --- REASONING ENGINE (GROQ) ---
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
     GROQ_MODEL = "llama-3.3-70b-versatile"
@@ -25,14 +30,20 @@ class Settings:
     DB_USER = os.getenv("DB_USER", "postgres")
     DB_PASS = os.getenv("DB_PASS")
     DB_NAME = os.getenv("DB_NAME", "postgres")
-    # Connection Name format: project:region:instance
-    DB_CONNECTION_NAME = os.getenv("DB_CONNECTION_NAME") 
     DB_HOST = os.getenv("DB_HOST", "localhost")
     DB_PORT = os.getenv("DB_PORT", "5432")
 
     @property
     def DATABASE_URL(self):
-        """Standard TCP URL for local dev or fallback."""
+        """
+        Generates the psycopg3 connection string.
+        Handles Cloud Run Unix Sockets vs Local TCP.
+        """
+        if self.DB_HOST.startswith("/cloudsql"):
+            # Format for psycopg3 Unix socket: host=/path/to/socket
+            return f"host={self.DB_HOST} dbname={self.DB_NAME} user={self.DB_USER} password={self.DB_PASS}"
+        
+        # Format for Local TCP
         return f"postgresql://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     # --- OBSERVABILITY ---

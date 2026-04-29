@@ -21,6 +21,8 @@ sqlalchemy
 pg8000
 psycopg[binary]
 psycopg-pool
+redis
+redisvl
 
 # --- LANGCHAIN & ORCHESTRATION ---
 langchain
