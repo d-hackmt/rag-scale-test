@@ -37,3 +37,9 @@ variable "db_password" {
   type        = string
   sensitive   = true
 }
+
+variable "logfire_token" {
+  description = "Logfire Write Token"
+  type        = string
+  sensitive   = true
+}
