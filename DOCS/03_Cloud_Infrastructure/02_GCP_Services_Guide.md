@@ -8,19 +8,21 @@ We utilize a wide array of Google Cloud Platform (GCP) services to make this app
 graph TD
     Internet((The Internet))
     
-    subgraph Google Cloud Project
-        subgraph Public Zone
-            GCS[(Cloud Storage<br/>Buckets)]
-            Eventarc((Eventarc<br/>Trigger))
-            RunUI[Cloud Run<br/>Streamlit UI]
-            RunAPI[Cloud Run<br/>Backend API]
-            RunIngest[Cloud Run<br/>Ingestion Worker]
+    subgraph GCP[Google Cloud Project]
+        
+        subgraph Public[Public Zone]
+            GCS[Cloud Storage Buckets]
+            Eventarc[Eventarc Trigger]
+            RunUI[Cloud Run - Streamlit UI]
+            RunAPI[Cloud Run - Backend API]
+            RunIngest[Cloud Run - Ingestion Worker]
         end
         
-        subgraph Private VPC Network (Secure Zone)
-            SQL[(Cloud SQL<br/>Postgres)]
-            Redis[(Memorystore<br/>Redis Cache)]
+        subgraph Private[Private VPC Network - Secure Zone]
+            SQL[Cloud SQL - Postgres]
+            Redis[Memorystore - Redis Cache]
         end
+        
     end
     
     Internet -->|HTTPS| RunUI
@@ -29,9 +31,9 @@ graph TD
     GCS -->|Alerts| Eventarc
     Eventarc -->|Wakes Up| RunIngest
     
-    RunAPI -.->|Reads/Writes via Socket| SQL
-    RunAPI -.->|Reads/Writes via VPC| Redis
-    RunIngest -.->|Reads/Writes via Socket| SQL
+    RunAPI -->|Reads/Writes via Socket| SQL
+    RunAPI -->|Reads/Writes via VPC| Redis
+    RunIngest -->|Reads/Writes via Socket| SQL
 ```
 
 ---
